@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enoch X Riji</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital@0;1&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #d63384; --secondary: #f8bbd0; --dark: #2d3436; --bg: #fff5f7; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .container { width: 90%; max-width: 500px; background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(214, 51, 132, 0.1); text-align: center; margin-top: 50px; }
+        h1 { font-family: 'Dancing Script', cursive; color: var(--primary); font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .subtitle { font-family: 'Playfair Display', serif; font-style: italic; margin-bottom: 2rem; color: #777; }
+
+        /* Setup Screen Styles */
+        input { width: 80%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-family: 'Poppins'; }
+        .share-box { background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 20px; word-break: break-all; font-size: 0.8rem; display: none; }
+        
+        /* Game Screen Styles */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 15px 10px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
+        .btn:hover { background: var(--primary); color: white; }
+        .btn-main { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        
+        #question-screen { display: none; animation: fadeIn 0.5s; }
+        #question-text { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 2rem 0; line-height: 1.4; }
+        .back-btn { background: none; border: none; color: #999; text-decoration: underline; cursor: pointer; margin-top: 1rem; }
+        
+        footer { margin-top: auto; padding: 20px; font-size: 0.7rem; color: #888; text-align: center; }
+        footer a { color: var(--primary); text-decoration: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- SETUP VIEW -->
+    <div id="setup-view">
+        <h1>Couples Questions</h1>
+        <p class="subtitle">Enter your names to start</p>
+        <input type="text" id="name1" placeholder="Your Name">
+        <input type="text" id="name2" placeholder="Partner's Name">
+        <button class="btn btn-main" onclick="createRoom()">Generate Game Link</button>
+        
+        <div id="link-area" class="share-box">
+            <p><strong>Share this link with your partner:</strong></p>
+            <p id="generated-link"></p>
+            <button class="btn" onclick="copyLink()">Copy Link</button>
+        </div>
+    </div>
+
+    <!-- LOBBY/MENU VIEW -->
+    <div id="lobby-view" style="display:none;">
+        <h1 id="pair-names">Name & Name</h1>
+        <p class="subtitle">Pick a category</p>
+        <div class="menu-grid">
+            <button class="btn" onclick="pickQuestion('probing')">Probing Questions</button>
+            <button class="btn" onclick="pickQuestion('faith')">What You Believe?</button>
+            <button class="btn" onclick="pickQuestion('romantic')">Romantic</button>
+            <button class="btn" onclick="pickQuestion('deep')">Deep Questions</button>
+            <button class="btn" onclick="pickQuestion('future')">Future & Dreams</button>
+            <button class="btn" onclick="pickQuestion('flirty')">Fun & Flirty</button>
+        </div>
+    </div>
+
+    <!-- QUESTION VIEW -->
+    <div id="question-screen">
+        <div id="current-category" style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; color: var(--primary); font-weight: bold;">Category</div>
+        <div id="question-text">Waiting...</div>
+        <button class="btn btn-main" id="next-btn">Next Question</button>
+        <br>
+        <button class="back-btn" onclick="goBack()">← Back to Menu</button>
+    </div>
+</div>
+
+<footer>
+    Questions sourced for your Date Night
+</footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // --- PASTE YOUR FIREBASE CONFIG HERE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDbdnwzFoOXcvz0SEhDLPKLC6nzgcNoEvA",
+  authDomain: "questions-9d203.firebaseapp.com",
+  databaseURL: "https://questions-9d203-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "questions-9d203",
+  storageBucket: "questions-9d203.firebasestorage.app",
+  messagingSenderId: "367649057882",
+  appId: "1:367649057882:web:beb5d05916764254227c63",
+  measurementId: "G-VC1R07DTLY"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const questions = {
+        probing: [
+            "What is your surname?",
+            "How many siblings do you have?",
+            "Where did you grow up?",
+            "What was your favorite subject in school?",
+            "What is your middle name?",
+            "Do you have any pets?",
+            "What do you do for a living?",
+            "What is your favorite hobby?",
+            "Are you a morning person or a night owl?",
+            "What is your favorite meal of all time?"
+        ],
+        faith: [
+            "What does a godly marriage look like?",
+            "Do you believe in gender roles?",
+            "What does a man laying down his life for his wife look like to you?",
+            "Should a christian get a BBL?",
+            "How would you bring in the Holy Spirit in your marriage?",
+            "Can couples attend separate churches? If not who should move?",
+            "What is your favorite Bible verse and why?",
+            "How do you prioritize your relationship with God daily?",
+            "What role does prayer play in your decision-making?",
+            "How do you define 'spiritual headship' in a household?"
+        ],
+        romantic: [
+            "What is your usual first impression of someone you are interested in?",
+            "What kind of date would be perfect in your eyes?",
+            "What’s something small a partner does that you really like?",
+            "How do you know when you’re falling for someone?",
+            "What’s your love language?",
+            "What’s your favorite memory from a past date?",
+            "What’s one thing you’ve always wanted to tell a partner early on?",
+            "What do you value most in a partner?",
+            "What’s one thing you hope never changes in a healthy relationship?",
+            "What’s your favorite way to show affection?",
+            "What’s one thing you never get tired of hearing from a spouse?",
+            "What’s a small romantic gesture that means a lot to you?",
+            "If your spouse had a rough day, what’s the first thing you’d do to help?",
+            "What makes you feel most connected to a partner?",
+            "What’s a way you want to grow with a future spouse?",
+            "What do you love most about healthy communication?",
+            "What’s one thing a partner has taught you in the past?",
+            "When do you feel the most at peace with someone?",
+            "What part of a relationship are you most proud of building?",
+            "What’s your favorite way to spend quiet time with a spouse?"
+        ],
+        deep: [
+            "What does a healthy relationship look like to you?",
+            "What’s something from your childhood that still impacts you today?",
+            "What’s your biggest fear in a relationship?",
+            "How do you usually handle conflict?",
+            "What’s one thing you’ve learned from past relationships?",
+            "What’s something you’ve struggled with that most people don’t know?",
+            "Do you believe people can really change?",
+            "What’s something you’ve always wanted to ask a partner but haven’t yet?",
+            "What does commitment mean to you?",
+            "Do you think it’s better to follow your head or your heart?",
+            "When was the last time you were truly proud of yourself?",
+            "What’s one value you’ll never compromise on?",
+            "What’s a hard truth you’ve learned about love?",
+            "How do you want to be supported during tough times?",
+            "What does vulnerability mean to you in a relationship?",
+            "What’s something you want to get better at for your future spouse?",
+            "What’s one way a partner can make you feel seen or understood?",
+            "How do you handle moments when you feel jealous or insecure?",
+            "What are your boundaries in a relationship, and why?",
+            "What’s a part of your personality you’re still figuring out?"
+        ],
+        future: [
+            "Where do you see yourself in five years?",
+            "What kind of life do you want to build one day?",
+            "Do you want to travel a lot or settle down in one place?",
+            "What kind of parent do you think you’d be?",
+            "What are your biggest goals in life?",
+            "What’s something you’ve always wanted to try — but haven’t yet?",
+            "If you won a free trip anywhere, where would you go?",
+            "What’s one place you want to visit with a spouse before you're older?",
+            "What’s a dream you haven’t shared with many people?",
+            "How do you picture your life in 10 years?"
+        ],
+        flirty: [
+            "What’s your biggest turn-on?",
+            "If you could take a trip anywhere with a partner right now, where would you go?",
+            "What song makes you think of romance?",
+            "If you were a character in a romantic movie, what would the story be called?",
+            "Do you believe in soulmates?",
+            "What’s your go-to move when trying to impress someone?",
+            "What’s something cute you’ve imagined doing with a spouse?",
+            "What cheesy romantic gesture would you secretly love?",
+            "What’s your favorite way to flirt?",
+            "What’s one compliment you love getting from your spouse?"
+        ]
+    };
+
+    // --- ROOM LOGIC ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room');
+
+    if (roomId) {
+        document.getElementById('setup-view').style.display = 'none';
+        document.getElementById('lobby-view').style.display = 'block';
+        const roomRef = ref(db, 'rooms/' + roomId);
+
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('pair-names').innerText = `${data.p1} & ${data.p2}`;
+                updateUI(data.state);
+            }
+        });
+    }
+
+    window.createRoom = () => {
+        const p1 = document.getElementById('name1').value;
+        const p2 = document.getElementById('name2').value;
+        if (!p1 || !p2) return alert("Please enter both names");
+
+        const newId = Math.random().toString(36).substring(2, 8);
+        const roomRef = ref(db, 'rooms/' + newId);
+        
+        set(roomRef, {
+            p1: p1,
+            p2: p2,
+            state: { view: 'home' }
+        }).then(() => {
+            const gameLink = window.location.href.split('?')[0] + '?room=' + newId;
+            document.getElementById('generated-link').innerText = gameLink;
+            document.getElementById('link-area').style.display = 'block';
+        });
+    };
+
+    window.copyLink = () => {
+        const link = document.getElementById('generated-link').innerText;
+        navigator.clipboard.writeText(link);
+        alert("Link copied! Send it to your partner.");
+    };
+
+    window.pickQuestion = (category) => {
+        const list = questions[category];
+        const randomQ = list[Math.floor(Math.random() * list.length)];
+        set(ref(db, `rooms/${roomId}/state`), {
+            view: 'question',
+            category: category.replace(/^\w/, c => c.toUpperCase()), // Capitalize display
+            question: randomQ
+        });
+    };
+
+    window.goBack = () => {
+        set(ref(db, `rooms/${roomId}/state`), { view: 'home' });
+    };
+
+    function updateUI(state) {
+        if (!state) return;
+        if (state.view === 'question') {
+            document.getElementById('lobby-view').style.display = 'none';
+            document.getElementById('question-screen').style.display = 'block';
+            document.getElementById('current-category').innerText = state.category;
+            document.getElementById('question-text').innerText = state.question;
+            
+            // Map the display category back to the object key for the "Next" button
+            let categoryKey = state.category.toLowerCase();
+            if(categoryKey === "what you believe?") categoryKey = "faith";
+            if(categoryKey === "probing questions") categoryKey = "probing";
+            if(categoryKey === "deep questions") categoryKey = "deep";
+            if(categoryKey === "future & dreams") categoryKey = "future";
+            if(categoryKey === "fun & flirty") categoryKey = "flirty";
+
+            document.getElementById('next-btn').onclick = () => pickQuestion(categoryKey);
+        } else {
+            document.getElementById('lobby-view').style.display = 'block';
+            document.getElementById('question-screen').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
