@@ -56,6 +56,8 @@
         <h1 id="pair-names">Name & Name</h1>
         <p class="subtitle">Pick a category</p>
         <div class="menu-grid">
+            <button class="btn" onclick="pickQuestion('probing')">Probing Questions</button>
+            <button class="btn" onclick="pickQuestion('faith')">What You Believe?</button>
             <button class="btn" onclick="pickQuestion('romantic')">Romantic</button>
             <button class="btn" onclick="pickQuestion('deep')">Deep Questions</button>
             <button class="btn" onclick="pickQuestion('future')">Future & Dreams</button>
@@ -74,8 +76,7 @@
 </div>
 
 <footer>
-    Questions sourced from <br>
-    <a href="https://yourteenmag.com/family-life/communication/21-questions-game" target="_blank">YourTeenMag - 21 Questions Game</a>
+    Questions sourced for your Date Night
 </footer>
 
 <script type="module">
@@ -98,10 +99,98 @@ const firebaseConfig = {
     const db = getDatabase(app);
 
     const questions = {
-        romantic: ["What was your first impression of me?", "What kind of date would be perfect in your eyes?", "What’s something small I do that you really like?", "How do you know when you’re falling for someone?", "What’s your love language?", "What’s your favorite memory of us so far?", "What’s one thing you’ve always wanted to tell me but haven’t?", "What do you like most about being with me?", "What’s one thing you hope never changes between us?", "What’s your favorite way to show affection?", "What’s one thing you never get tired of hearing from me?", "What’s a small moment with me that meant more than I realized?", "If I had a rough day, what’s the first thing you’d do to help?", "What makes you feel most connected to me?", "What’s a way you’ve seen us grow as a couple?", "What do you love most about how we communicate?", "What’s one thing I’ve taught you without even realizing it?", "When do you feel the safest or most at peace with me?", "What part of our relationship are you most proud of?", "What’s your favorite way to spend quiet time together?"],
-        deep: ["What does a healthy relationship look like to you?", "What’s something from your childhood that still impacts you today?", "What’s your biggest fear in a relationship?", "How do you usually handle conflict?", "What’s one thing you’ve learned from past relationships?", "What’s something you’ve struggled with that most people don’t know?", "Do you believe people can really change?", "What’s something you’ve always wanted to ask me but haven’t yet?", "What does commitment mean to you?", "Do you think it’s better to follow your head or your heart?", "When was the last time you were truly proud of yourself?", "What’s one value you’ll never compromise on?", "What’s a hard truth you’ve learned about love?", "How do you want to be supported during tough times?", "What does vulnerability mean to you in a relationship?", "What’s something you want to get better at for us?", "What’s one way I’ve made you feel seen or understood?", "How do you handle moments when you feel jealous or insecure?", "What are your boundaries in a relationship, and why?", "What’s a part of your personality you’re still figuring out?"],
-        future: ["Where do you see yourself in five years?", "What kind of life do you want to build one day?", "Do you want to travel a lot or settle down in one place?", "What kind of parent do you think you’d be?", "What are your biggest goals in life?", "What’s something you’ve always wanted to try — but haven’t yet?", "If we won a free trip anywhere, where would we go?", "What’s one place you want us to visit together before we’re older?", "What’s a dream you haven’t shared with many people?", "How do you picture your life in 10 years?"],
-        flirty: ["What’s your biggest turn-on?", "If we could take a trip anywhere together right now, where would we go?", "What song makes you think of me?", "If we were characters in a romantic movie, what would our story be called?", "Do you believe in soulmates?", "What’s your go-to move when trying to impress me?", "What’s something cute you’ve imagined us doing together?", "What cheesy romantic gesture would you secretly love?", "What’s your favorite way to flirt?", "What’s one compliment you love getting from me?"]
+        probing: [
+            "What is your surname?",
+            "How many siblings do you have?",
+            "Where did you grow up?",
+            "What was your favorite subject in school?",
+            "What is your middle name?",
+            "Do you have any pets?",
+            "What do you do for a living?",
+            "What is your favorite hobby?",
+            "Are you a morning person or a night owl?",
+            "What is your favorite meal of all time?"
+        ],
+        faith: [
+            "What does a godly marriage look like?",
+            "Do you believe in gender roles?",
+            "What does a man laying down his life for his wife look like to you?",
+            "Should a christian get a BBL?",
+            "How would you bring in the Holy Spirit in your marriage?",
+            "Can couples attend separate churches? If not who should move?",
+            "What is your favorite Bible verse and why?",
+            "How do you prioritize your relationship with God daily?",
+            "What role does prayer play in your decision-making?",
+            "How do you define 'spiritual headship' in a household?"
+        ],
+        romantic: [
+            "What is your usual first impression of someone you are interested in?",
+            "What kind of date would be perfect in your eyes?",
+            "What’s something small a partner does that you really like?",
+            "How do you know when you’re falling for someone?",
+            "What’s your love language?",
+            "What’s your favorite memory from a past date?",
+            "What’s one thing you’ve always wanted to tell a partner early on?",
+            "What do you value most in a partner?",
+            "What’s one thing you hope never changes in a healthy relationship?",
+            "What’s your favorite way to show affection?",
+            "What’s one thing you never get tired of hearing from a spouse?",
+            "What’s a small romantic gesture that means a lot to you?",
+            "If your spouse had a rough day, what’s the first thing you’d do to help?",
+            "What makes you feel most connected to a partner?",
+            "What’s a way you want to grow with a future spouse?",
+            "What do you love most about healthy communication?",
+            "What’s one thing a partner has taught you in the past?",
+            "When do you feel the most at peace with someone?",
+            "What part of a relationship are you most proud of building?",
+            "What’s your favorite way to spend quiet time with a spouse?"
+        ],
+        deep: [
+            "What does a healthy relationship look like to you?",
+            "What’s something from your childhood that still impacts you today?",
+            "What’s your biggest fear in a relationship?",
+            "How do you usually handle conflict?",
+            "What’s one thing you’ve learned from past relationships?",
+            "What’s something you’ve struggled with that most people don’t know?",
+            "Do you believe people can really change?",
+            "What’s something you’ve always wanted to ask a partner but haven’t yet?",
+            "What does commitment mean to you?",
+            "Do you think it’s better to follow your head or your heart?",
+            "When was the last time you were truly proud of yourself?",
+            "What’s one value you’ll never compromise on?",
+            "What’s a hard truth you’ve learned about love?",
+            "How do you want to be supported during tough times?",
+            "What does vulnerability mean to you in a relationship?",
+            "What’s something you want to get better at for your future spouse?",
+            "What’s one way a partner can make you feel seen or understood?",
+            "How do you handle moments when you feel jealous or insecure?",
+            "What are your boundaries in a relationship, and why?",
+            "What’s a part of your personality you’re still figuring out?"
+        ],
+        future: [
+            "Where do you see yourself in five years?",
+            "What kind of life do you want to build one day?",
+            "Do you want to travel a lot or settle down in one place?",
+            "What kind of parent do you think you’d be?",
+            "What are your biggest goals in life?",
+            "What’s something you’ve always wanted to try — but haven’t yet?",
+            "If you won a free trip anywhere, where would you go?",
+            "What’s one place you want to visit with a spouse before you're older?",
+            "What’s a dream you haven’t shared with many people?",
+            "How do you picture your life in 10 years?"
+        ],
+        flirty: [
+            "What’s your biggest turn-on?",
+            "If you could take a trip anywhere with a partner right now, where would you go?",
+            "What song makes you think of romance?",
+            "If you were a character in a romantic movie, what would the story be called?",
+            "Do you believe in soulmates?",
+            "What’s your go-to move when trying to impress someone?",
+            "What’s something cute you’ve imagined doing with a spouse?",
+            "What cheesy romantic gesture would you secretly love?",
+            "What’s your favorite way to flirt?",
+            "What’s one compliment you love getting from your spouse?"
+        ]
     };
 
     // --- ROOM LOGIC ---
@@ -152,7 +241,7 @@ const firebaseConfig = {
         const randomQ = list[Math.floor(Math.random() * list.length)];
         set(ref(db, `rooms/${roomId}/state`), {
             view: 'question',
-            category: category,
+            category: category.replace(/^\w/, c => c.toUpperCase()), // Capitalize display
             question: randomQ
         });
     };
@@ -168,7 +257,16 @@ const firebaseConfig = {
             document.getElementById('question-screen').style.display = 'block';
             document.getElementById('current-category').innerText = state.category;
             document.getElementById('question-text').innerText = state.question;
-            document.getElementById('next-btn').onclick = () => pickQuestion(state.category);
+            
+            // Map the display category back to the object key for the "Next" button
+            let categoryKey = state.category.toLowerCase();
+            if(categoryKey === "what you believe?") categoryKey = "faith";
+            if(categoryKey === "probing questions") categoryKey = "probing";
+            if(categoryKey === "deep questions") categoryKey = "deep";
+            if(categoryKey === "future & dreams") categoryKey = "future";
+            if(categoryKey === "fun & flirty") categoryKey = "flirty";
+
+            document.getElementById('next-btn').onclick = () => pickQuestion(categoryKey);
         } else {
             document.getElementById('lobby-view').style.display = 'block';
             document.getElementById('question-screen').style.display = 'none';
